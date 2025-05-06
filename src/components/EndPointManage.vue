@@ -225,7 +225,7 @@ const saveApiInfo = function () {
 
   localStorage.setItem('endPointList', JSON.stringify(endPointList.value))
 
-  animateText(btnText, 'Saved!', {
+  animateText(btnText, '保存成功!', {
     interval: 80,
     skipText: 'S'
   })
@@ -240,7 +240,7 @@ const saveApiInfo = function () {
   newCustomDomain.value = ''
 
   setTimeout(() => {
-    animateText(btnText, 'Save To LocalStorage', {
+    animateText(btnText, '保存至本地', {
       interval: 20,
       skipText: 'Save '
     })
