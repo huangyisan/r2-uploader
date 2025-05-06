@@ -1,43 +1,28 @@
 <template>
   <div>
     <form action="javascript:">
-      <div class="font-bold italic">Upload Files</div>
+      <div class="font-bold italic">上传文件</div>
       <div>
-        <label
-          for="fileInput"
-          class="rounded bg-emerald-200 dark:bg-emerald-800 px-4 py-2 inline-block mt-4 mb-4 cursor-pointer text-sm shadow hover:shadow-xl"
-          :style="{
-            opacity: uploading ? 0.5 : 1
-          }"
-          >{{ chooseFileBtnText }}
+        <label for="fileInput"
+               class="rounded bg-emerald-200 dark:bg-emerald-800 px-4 py-2 inline-block mt-4 mb-4 cursor-pointer text-sm shadow hover:shadow-xl"
+               :style="{
+                opacity: uploading ? 0.5 : 1
+              }">{{ chooseFileBtnText }}
         </label>
 
-        <label
-          v-show="browserSupportsDirectoryUpload"
-          class="ml-2 rounded bg-emerald-100 dark:bg-emerald-900 px-4 py-2 inline-block mt-4 mb-4 cursor-pointer text-sm shadow hover:shadow-xl"
-          :style="{
-            opacity: uploading ? 0.5 : 1
-          }"
-          @click="handleFolder"
-          >Choose Folder 📂</label
-        >
+        <label v-show="browserSupportsDirectoryUpload"
+               class="ml-2 rounded bg-emerald-100 dark:bg-emerald-900 px-4 py-2 inline-block mt-4 mb-4 cursor-pointer text-sm shadow hover:shadow-xl"
+               :style="{
+                opacity: uploading ? 0.5 : 1
+              }" @click="handleFolder">选择文件夹 📂</label>
 
-        <input
-          id="fileInput"
-          type="file"
-          @change="handleFilesChange"
-          multiple
-          class="absolute left-[-9999rem]"
-          :disabled="uploading"
-        />
+        <input id="fileInput" type="file" @change="handleFilesChange" multiple class="absolute left-[-9999rem]"
+               :disabled="uploading" />
       </div>
       <div class="mt-2" v-show="fileList.length">
-        <button
-          class="inline-block w-auto shadow transition-all hover:shadow-xl hover:rounded-3xl"
-          @click="upload"
-          :disabled="uploading"
-        >
-          🔥 Upload
+        <button class="inline-block w-auto shadow transition-all hover:shadow-xl hover:rounded-3xl" @click="upload"
+                :disabled="uploading">
+          🔥 点击上传
         </button>
       </div>
       <div>
@@ -46,16 +31,16 @@
           <span v-show="skipFilesWithTheSameName && !uploading">
             Will skip
             <span v-show="calcSkipFiles() === fileList.length && !uploading">all. </span>
-            <span v-show="calcSkipFiles() !== fileList.length"
-              >{{ calcSkipFiles() }} file{{ calcSkipFiles() === 1 ? '' : 's' }}.
+            <span v-show="calcSkipFiles() !== fileList.length">{{ calcSkipFiles() }} file{{ calcSkipFiles() === 1 ? '' :
+              's' }}.
             </span>
           </span>
         </div>
         <div v-show="fileList.length + uploadedList.length > 0">
           <div class="text-center text-xs py-4" v-show="uploading || uploadedList.length > 0">
             {{ uploadIsDone ? 'Uploaded' : 'Uploading' }} at
-            <span class="dark:text-green-200 text-green-800 italic font-bold">{{ globalSpeed }}</span
-            ><span v-show="uploadIsDone">, All done.</span>
+            <span class="dark:text-green-200 text-green-800 italic font-bold">{{ globalSpeed }}</span><span
+                  v-show="uploadIsDone">, All done.</span>
           </div>
         </div>
 
@@ -63,88 +48,53 @@
           <!--          upload status map -->
           <div class="flex flex-wrap dark:bg-neutral-950 bg-neutral-50 pt-2 px-2 pb-1 rounded-xl shadow">
             <div v-for="item in uploadedList" class="bg-green-400 rounded-xl w-[.5rem] h-[.5rem] mb-1 mr-1"></div>
-            <div
-              v-for="item in fileList"
-              class="bg-gray-300 dark:bg-neutral-700 w-[.5rem] h-[.5rem] mb-1 mr-1 relative rounded-xl overflow-hidden"
-            >
-              <div
-                class="absolute w-full bottom-0 left-0"
-                style="height: 0"
-                :style="{
-                  height: progressMap[item.key] + '%'
-                }"
-                :class="{
-                  'bg-red-500': statusMap[item.key] === 'error',
-                  'bg-green-400': statusMap[item.key] !== 'error',
-                  'dark:bg-green-600': statusMap[item.key] !== 'error'
-                }"
-              ></div>
+            <div v-for="item in fileList"
+                 class="bg-gray-300 dark:bg-neutral-700 w-[.5rem] h-[.5rem] mb-1 mr-1 relative rounded-xl overflow-hidden">
+              <div class="absolute w-full bottom-0 left-0" style="height: 0" :style="{
+                height: progressMap[item.key] + '%'
+              }" :class="{
+                'bg-red-500': statusMap[item.key] === 'error',
+                'bg-green-400': statusMap[item.key] !== 'error',
+                'dark:bg-green-600': statusMap[item.key] !== 'error'
+              }"></div>
             </div>
           </div>
         </div>
         <div v-show="uploadIsDone" class="text-center">
-          <button
-            class="inline-block border-0 w-auto text-xs outline dark:bg-neutral-800 bg-neutral-100 hover:bg-neutral-300 hover:dark:bg-neutral-700 rounded-3xl"
-            style="border: none"
-            @click="clearUploadedFiles"
-          >
-            Dismiss
+          <button class="inline-block border-0 w-auto text-xs outline dark:bg-neutral-800 bg-neutral-100 hover:bg-neutral-300 hover:dark:bg-neutral-700 rounded-3xl"
+                  style="border: none" @click="clearUploadedFiles">
+            关闭展示
           </button>
         </div>
         <div class="pb-4" v-show="fileList.length > 0 && !uploading">
           <div class="flex mb-2">
-            <input
-              :disabled="uploading"
-              class="text-xs shrink-0"
-              type="checkbox"
-              id="skip_uploading_if_filename_is_the_same"
-              v-model="skipFilesWithTheSameName"
-            />
-            <label for="skip_uploading_if_filename_is_the_same" class="text-xs"
-              >Skip uploading files with the same name</label
-            >
+            <input :disabled="uploading" class="text-xs shrink-0" type="checkbox"
+                   id="skip_uploading_if_filename_is_the_same" v-model="skipFilesWithTheSameName" />
+            <label for="skip_uploading_if_filename_is_the_same" class="text-xs">跳过同名文件</label>
           </div>
           <div class="flex mb-2">
-            <input
-              type="checkbox"
-              class="text-xs shrink-0"
-              :disabled="uploading"
-              v-model="renameFileWithRandomId"
-              id="renameFileWithRandomId"
-            />
-            <label class="text-xs" for="renameFileWithRandomId">Rename each file with a random ID</label>
+            <input type="checkbox" class="text-xs shrink-0" :disabled="uploading" v-model="renameFileWithRandomId"
+                   id="renameFileWithRandomId" />
+            <label class="text-xs" for="renameFileWithRandomId">对每个文件进行随机id命名</label>
           </div>
           <div class="flex">
-            <input
-              type="checkbox"
-              class="text-xs shrink-0"
-              :disabled="uploading"
-              v-model="compressImagesBeforeUploading"
-              id="compressImagesBeforeUploading"
-            />
-            <label class="text-xs" for="compressImagesBeforeUploading"> Compress images before uploading </label>
+            <input type="checkbox" class="text-xs shrink-0" :disabled="uploading"
+                   v-model="compressImagesBeforeUploading" id="compressImagesBeforeUploading" />
+            <label class="text-xs" for="compressImagesBeforeUploading"> 对图片进行压缩后上传 </label>
           </div>
           <div v-if="compressImagesBeforeUploading" class="text-xs pt-4 pl-2">
             <div>
-              <label for="removeEXIF" class="flex items-center"
-                ><input id="removeEXIF" type="checkbox" v-model="defaultCompressOptions.removeEXIF" /> Remove
-                EXIF</label
-              >
+              <label for="removeEXIF" class="flex items-center"><input id="removeEXIF" type="checkbox"
+                       v-model="defaultCompressOptions.removeEXIF" /> Remove
+                EXIF</label>
             </div>
             <div class="flex">
               <label for="covertImageType" class="flex items-center">
-                <input
-                  id="covertImageType"
-                  type="checkbox"
-                  class="shrink-0"
-                  v-model="defaultCompressOptions.convertImageType"
-                />
+                <input id="covertImageType" type="checkbox" class="shrink-0"
+                       v-model="defaultCompressOptions.convertImageType" />
                 <span class="shrink-0">Covert to</span>
-                <select
-                  :disabled="!defaultCompressOptions.convertImageType"
-                  class="shrink-0 mb-0 ml-2 text-sm py-1 px-2"
-                  v-model="defaultCompressOptions.imageType"
-                >
+                <select :disabled="!defaultCompressOptions.convertImageType"
+                        class="shrink-0 mb-0 ml-2 text-sm py-1 px-2" v-model="defaultCompressOptions.imageType">
                   <option value="jpeg">jpg</option>
                   <option value="png">png</option>
                   <option value="webp">webp</option>
@@ -154,131 +104,80 @@
             <div class="flex">
               <label for="maxWidth" class="flex items-center">
                 <span class="shrink-0">Max Width:</span>
-                <input
-                  type="number"
-                  class="text-xs py-1 px-2 ml-1 mb-0"
-                  style="margin-bottom: 0; padding: 0.25rem 0.25rem; height: auto"
-                  v-model="defaultCompressOptions.maxWidth"
-                  id="maxWidth"
-                  placeholder="Infinity"
-                />
+                <input type="number" class="text-xs py-1 px-2 ml-1 mb-0"
+                       style="margin-bottom: 0; padding: 0.25rem 0.25rem; height: auto"
+                       v-model="defaultCompressOptions.maxWidth" id="maxWidth" placeholder="Infinity" />
               </label>
             </div>
             <div class="flex">
               <label for="maxHeight" class="flex items-center">
                 <span class="shrink-0">Max Height:</span>
-                <input
-                  type="number"
-                  class="text-xs py-1 px-2 ml-1 mb-0"
-                  style="margin-bottom: 0; padding: 0.25rem 0.25rem; height: auto"
-                  v-model="defaultCompressOptions.maxHeight"
-                  id="maxHeight"
-                  placeholder="Infinity"
-                />
+                <input type="number" class="text-xs py-1 px-2 ml-1 mb-0"
+                       style="margin-bottom: 0; padding: 0.25rem 0.25rem; height: auto"
+                       v-model="defaultCompressOptions.maxHeight" id="maxHeight" placeholder="Infinity" />
               </label>
             </div>
             <div class="flex">
               <label for="quality" class="flex items-center">
                 <span class="shrink-0">Image Quality:</span>
-                <input
-                  type="number"
-                  class="text-xs py-1 px-2 ml-1 mb-0"
-                  style="margin-bottom: 0; padding: 0.25rem 0.25rem; height: auto"
-                  v-model="defaultCompressOptions.quality"
-                  id="quality"
-                />
+                <input type="number" class="text-xs py-1 px-2 ml-1 mb-0"
+                       style="margin-bottom: 0; padding: 0.25rem 0.25rem; height: auto"
+                       v-model="defaultCompressOptions.quality" id="quality" />
               </label>
             </div>
           </div>
           <div class="flex pt-1 items-center">
-            <input
-              type="checkbox"
-              class="text-xs shrink-0"
-              :disabled="uploading"
-              v-model="uploadToFolder"
-              id="uploadToFolder"
-            />
-            <label class="text-xs whitespace-nowrap" for="uploadToFolder"> Upload to folder </label>
-            <input type="text" class="text-xs px-2 py-1" style="padding: 0.2rem 0.4rem; margin: 0; height: auto" v-model="customFolderName" placeholder="/" @blur="handleFolderNameBlur" />
+            <input type="checkbox" class="text-xs shrink-0" :disabled="uploading" v-model="uploadToFolder"
+                   id="uploadToFolder" />
+            <label class="text-xs whitespace-nowrap" for="uploadToFolder"> 上传路径为 </label>
+            <input type="text" class="text-xs px-2 py-1" style="padding: 0.2rem 0.4rem; margin: 0; height: auto"
+                   v-model="customFolderName" placeholder="/" @blur="handleFolderNameBlur" />
           </div>
         </div>
 
-        <div class="pt-4 pb-2 text-xs" v-show="fileList.length">Files Queued:</div>
-        <div
-          class="item rounded text-sm flex w-full mb-2 relative items-center"
-          v-for="(item, index) in fileList"
-          :key="item.key"
-        >
+        <div class="pt-4 pb-2 text-xs" v-show="fileList.length">上传队列:</div>
+        <div class="item rounded text-sm flex w-full mb-2 relative items-center" v-for="(item, index) in fileList"
+             :key="item.key">
           <div class="w-full bg-neutral-50 text-xs rounded dark:bg-[#333] px-2 py-2 relative shadow">
-            <div
-              class="progress absolute h-[.1rem] bottom-0 left-0 bg-green-500 transition-all"
-              :style="{
-                width: progressMap[item.key] + '%'
-              }"
-              :class="{
-                'bg-red-500': statusMap[item.key] === 'error'
-              }"
-            ></div>
+            <div class="progress absolute h-[.1rem] bottom-0 left-0 bg-green-500 transition-all" :style="{
+              width: progressMap[item.key] + '%'
+            }" :class="{
+              'bg-red-500': statusMap[item.key] === 'error'
+            }"></div>
             <div v-show="editKey === item.key" class="flex">
               <form action="javascript:" @submit="renameThisFile(item)" class="flex mb-0 w-full">
-                <input
-                  class="text-xs w-full"
-                  type="text"
-                  style="padding: 0.2rem 0.4rem; margin: 0; height: auto"
-                  :value="renameFileWithRandomId ? item.id_key : item.key"
-                  :id="'input_' + item.key"
-                />
-                <button
-                  class="ml-2 inline-block w-auto shrink-0 outline text-xs text-emerald-500 mb-0"
-                  style="padding: 0; border: none; background: transparent"
-                  type="submit"
-                >
+                <input class="text-xs w-full" type="text" style="padding: 0.2rem 0.4rem; margin: 0; height: auto"
+                       :value="renameFileWithRandomId ? item.id_key : item.key" :id="'input_' + item.key" />
+                <button class="ml-2 inline-block w-auto shrink-0 outline text-xs text-emerald-500 mb-0"
+                        style="padding: 0; border: none; background: transparent" type="submit">
                   Rename
                 </button>
-                <button
-                  type="button"
-                  @click="editKey = null"
-                  class="inline-block mb-0 w-auto shrink-0 outline ml-2 dark:text-white text-black text-xs"
-                  style="padding: 0; border: 0"
-                >
+                <button type="button" @click="editKey = null"
+                        class="inline-block mb-0 w-auto shrink-0 outline ml-2 dark:text-white text-black text-xs"
+                        style="padding: 0; border: 0">
                   Cancel
                 </button>
               </form>
             </div>
-            <span
-              :data-tooltip="uploading ? 'Can\'t rename now' : 'Click to rename'"
-              v-show="editKey !== item.key"
-              class="inline-block break-all"
-              @click="showRenameInput(item.key)"
-              >{{ renameFileWithRandomId ? item.id_key : item.key }}</span
-            ><br /><span
-              :style="{
+            <span :data-tooltip="uploading ? 'Can\'t rename now' : 'Click to rename'" v-show="editKey !== item.key"
+                  class="inline-block break-all" @click="showRenameInput(item.key)">{{ renameFileWithRandomId ?
+                    item.id_key : item.key }}</span><br /><span :style="{
                 marginTop: editKey === item.key ? '0' : '0.25rem',
                 top: editKey !== item.key ? 0 : '-.2rem'
-              }"
-              class="opacity-80 text-green-500 mt-1 inline-block relative font-mono"
-              :class="{
+              }" class="opacity-80 text-green-500 mt-1 inline-block relative font-mono" :class="{
                 'text-red-500': statusMap[item.key] === 'error'
-              }"
-              >{{ parseByteSize(item.size) }}
+              }">{{ parseByteSize(item.size) }}
               <span v-show="uploading && !item.compressing"> / {{ progressMap[item.key] }}%</span>
               <span v-show="item.compressing">Compressing...</span>
               <span v-show="item.splitting && item.isMpu">Splitting Chunks...</span>
             </span>
           </div>
-          <div
-            v-show="editKey !== item.key"
-            class="rounded text0-xs px-2 cursor-pointer hover:text-red-500"
-            @click="removeThisFile(index, item.key)"
-          >
+          <div v-show="editKey !== item.key" class="rounded text0-xs px-2 cursor-pointer hover:text-red-500"
+               @click="removeThisFile(index, item.key)">
             <i class="iconfont icon-error"></i>
           </div>
-          <div
-            title="Re-Upload this file"
-            v-show="statusMap[item.key] === 'error'"
-            class="rounded text0-xs px-2 cursor-pointer"
-            @click="reUploadThisFile(index, item.key)"
-          >
+          <div title="Re-Upload this file" v-show="statusMap[item.key] === 'error'"
+               class="rounded text0-xs px-2 cursor-pointer" @click="reUploadThisFile(index, item.key)">
             <i class="iconfont icon-reload"></i>
           </div>
         </div>
@@ -298,7 +197,7 @@ let statusStore = useStatusStore()
 
 let browserSupportsDirectoryUpload = ref(true)
 let fileList = ref([])
-let chooseFileBtnText = ref('Choose Files')
+let chooseFileBtnText = ref('添加文件')
 let allFileSize = ref(0)
 let progressMap = ref({})
 let statusMap = ref({})
@@ -607,7 +506,7 @@ let removeThisFile = function (index, name) {
         abortControllerMap.value[name].forEach((s) => {
           try {
             s.abort()
-          } catch (_) {}
+          } catch (_) { }
         })
       } else {
         abortControllerMap.value[name].abort()
@@ -851,7 +750,7 @@ async function mpuUploadFile(file, data) {
       abortControllerMap.value[file.key].forEach((s) => {
         try {
           s.abort()
-        } catch (_) {}
+        } catch (_) { }
       })
 
       file.uploading = false
@@ -1035,9 +934,9 @@ watch(
   fileList,
   (newVal) => {
     if (newVal.length) {
-      chooseFileBtnText.value = 'Add More Files'
+      chooseFileBtnText.value = '添加更多文件'
     } else {
-      chooseFileBtnText.value = 'Choose Files'
+      chooseFileBtnText.value = '添加文件'
     }
 
     calcAllFileSize()
@@ -1101,7 +1000,7 @@ let handleFolderNameBlur = function () {
   }
 
   let folderPath = customFolderName.value.replace(/^\/+/, '')
-  
+
   // Normalize folder path to ensure it ends with /
   if (folderPath && !folderPath.endsWith('/')) {
     folderPath = folderPath + '/'
